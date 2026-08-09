@@ -1,0 +1,43 @@
+# Environment variables (Crucial for security)
+.env
+.env.local
+.env.*.local
+
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS metadata & system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE & Editor settings
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+.agent
+
+# Diagnostic & coverage outputs
+coverage/
+.nyc_output/

@@ -1,0 +1,17 @@
+{
+  "name": "my-discord-bot",
+  "version": "1.0.0",
+  "description": "Vaxloz Discord Bot",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.5"
+  }
+}
