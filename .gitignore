@@ -36,7 +36,6 @@ Desktop.ini
 tmp/
 temp/
 *.tmp
-.agent
 
 # Diagnostic & coverage outputs
 coverage/
