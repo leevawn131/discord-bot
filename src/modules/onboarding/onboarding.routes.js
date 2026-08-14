@@ -1,8 +1,6 @@
 const {
+  handleStartOnboarding,
   handleRoleSelect,
-  handleNSFWCheck,
-  handleNSFWConfirmYes,
-  handleNSFWConfirmNo,
 } = require('./onboarding.handler');
 
 async function routeOnboarding(interaction) {
@@ -11,13 +9,9 @@ async function routeOnboarding(interaction) {
   }
 
   if (interaction.isButton()) {
-    switch (interaction.customId) {
-      case 'nsfw_check':
-        return handleNSFWCheck(interaction);
-      case 'nsfw_yes':
-        return handleNSFWConfirmYes(interaction);
-      case 'nsfw_no':
-        return handleNSFWConfirmNo(interaction);
+    if (interaction.customId.startsWith('start_onboarding_')) {
+      const targetUserId = interaction.customId.replace('start_onboarding_', '');
+      return handleStartOnboarding(interaction, targetUserId);
     }
   }
 

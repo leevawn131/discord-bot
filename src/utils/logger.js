@@ -15,5 +15,6 @@ function writeLog(filename, message) {
 
 module.exports = {
   info: (msg) => writeLog('interaction.log', `[INFO] ${msg}`),
+  warn: (msg) => writeLog('warn.log', `[WARN] ${msg}`),
   error: (msg, err) => writeLog('error.log', `[ERROR] ${msg} ${err ? (err.stack || err) : ''}`),
 };

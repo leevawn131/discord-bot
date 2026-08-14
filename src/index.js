@@ -11,12 +11,18 @@ if (!env.token) {
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
   ],
 });
 
 // Load events
 client.on('interactionCreate', require('./events/interactionCreate'));
-client.once('ready', () => require('./events/ready')(client));
+client.on('guildMemberAdd', require('./events/guildMemberAdd'));
+client.on('guildMemberUpdate', require('./events/guildMemberUpdate'));
+client.on('messageCreate', require('./events/messageCreate'));
+client.once('clientReady', () => require('./events/ready')(client));
 
 // Login bot
 client.login(env.token).catch((err) => {
