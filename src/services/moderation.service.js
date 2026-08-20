@@ -1,5 +1,6 @@
 const logger = require('../utils/logger');
 const bannedWords = require('../config/bannedWords');
+const { restrictedChannels } = require('../config/restrictedChannels');
 
 /**
  * Check if text contains any banned word or pattern from bannedWords list
@@ -112,9 +113,54 @@ async function checkAndKickForSteamMessage(message) {
   return false;
 }
 
+/**
+ * Check if message was sent in a restricted channel (cấm nhắn tin).
+ * Deletes the message and kicks the sender, unless the message is in exemptMessageIds.
+ */
+async function checkAndKickRestrictedChannel(message) {
+  const config = restrictedChannels.find(rc => rc.channelId === message.channelId);
+  if (!config) {
+    return false;
+  }
+
+  // Check if message is exempt
+  if (config.exemptMessageIds && config.exemptMessageIds.includes(message.id)) {
+    return false;
+  }
+
+  logger.warn(`Message sent in restricted channel #${message.channel.name} (${message.channelId}) by ${message.author.tag} (${message.author.id}). Action: Delete & Kick.`);
+
+  // 1. Delete message
+  try {
+    if (message.deletable) {
+      await message.delete();
+      logger.info(`Deleted message in restricted channel from ${message.author.tag}`);
+    }
+  } catch (err) {
+    logger.error(`Failed to delete message in restricted channel from ${message.author.tag}:`, err.message);
+  }
+
+  // 2. Kick sender
+  try {
+    const member = message.member || await message.guild.members.fetch(message.author.id);
+    if (member && member.kickable) {
+      await member.kick(config.reason || 'Tự động kick: Nhắn tin vào kênh bị cấm');
+      logger.info(`✅ Successfully kicked ${message.author.tag} for sending message in restricted channel.`);
+      return true;
+    } else {
+      logger.warn(`Cannot kick ${message.author.tag}: Member is not kickable by bot.`);
+    }
+  } catch (err) {
+    logger.error(`Failed to kick ${message.author.tag}:`, err.message);
+  }
+
+  return false;
+}
+
 module.exports = {
   findBannedWord,
   isBannedAccount,
   checkAndKickSteamAccount,
   checkAndKickForSteamMessage,
+  checkAndKickRestrictedChannel,
 };

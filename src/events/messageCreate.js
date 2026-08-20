@@ -8,7 +8,13 @@ module.exports = async (message) => {
       return;
     }
 
-    // Check message content for ".steam" and delete + kick if matched
+    // 1. Check if message is in a restricted channel (cấm chat) -> Delete & Kick
+    const kicked = await moderationService.checkAndKickRestrictedChannel(message);
+    if (kicked) {
+      return;
+    }
+
+    // 2. Check message content for banned words (".steam", etc.) and delete + kick if matched
     await moderationService.checkAndKickForSteamMessage(message);
   } catch (error) {
     logger.error('Error handling messageCreate event:', error);
