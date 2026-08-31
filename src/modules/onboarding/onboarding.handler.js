@@ -57,22 +57,15 @@ async function handleRoleSelect(interaction) {
     const member = await getMember(interaction);
     const selectedValues = interaction.values;
 
-    const result = await roleService.updateOnboardingRoles(member, selectedValues);
-
-    const isConflict = result && result.conflict;
-
-    let noticeText = '🎭 **Bảng chọn Role cá nhân của bạn:**';
-    if (isConflict) {
-      noticeText = '❌ **LỖI XUNG ĐỘT ROLE:** Bạn KHÔNG THỂ tích chọn "Sóc ăn nằm" cùng với "Biết vẽ" hoặc "Làm nhạc"! Toàn bộ lựa chọn đã bị hủy. Vui lòng chọn lại từ đầu.';
-    }
+    await roleService.updateOnboardingRoles(member, selectedValues);
 
     // Refresh member status & render components accordingly
     const status = roleService.getMemberRoleStatus(member);
-    const embed = createOnboardingEmbed(status, isConflict);
-    const components = createOnboardingComponents(status, isConflict);
+    const embed = createOnboardingEmbed(status);
+    const components = createOnboardingComponents(status);
 
     await interaction.editReply({
-      content: noticeText,
+      content: '🎭 **Bảng chọn Role cá nhân của bạn:**',
       embeds: [embed],
       components: components,
     });

@@ -15,86 +15,52 @@ function createStartOnboardingButton(targetUserId) {
   );
 }
 
-function createOnboardingEmbed(status = {}, isConflict = false) {
+function createOnboardingEmbed(status = {}) {
   const { hasArtist, hasMusic, hasBatTai } = status;
 
-  if (isConflict) {
-    return new EmbedBuilder()
-      .setTitle('🎭 Vaxloz Onboarding')
-      .setDescription('❌ **Trạng thái:** Lựa chọn bị lỗi xung đột! Đã hủy hết role. Vui lòng chọn lại từ đầu.')
-      .setColor('Red');
-  }
+  const selectedList = [];
+  if (hasArtist) selectedList.push('🎨 **Biết vẽ**');
+  if (hasMusic) selectedList.push('🎵 **Làm nhạc**');
+  if (hasBatTai) selectedList.push('🛋️ **Sóc ăn nằm**');
 
-  let statusText = 'Chưa chọn role nào.';
-  if (hasBatTai) {
-    statusText = '✅ Đã chọn: **🛋️ Sóc ăn nằm**';
-  } else if (hasArtist && hasMusic) {
-    statusText = '✅ Đã chọn: **🎨 Biết vẽ** & **🎵 Làm nhạc**';
-  } else if (hasArtist) {
-    statusText = '✅ Đã chọn: **🎨 Biết vẽ**';
-  } else if (hasMusic) {
-    statusText = '✅ Đã chọn: **🎵 Làm nhạc**';
-  }
+  const statusText = selectedList.length > 0
+    ? `✅ Đã chọn: ${selectedList.join(', ')}`
+    : 'Chưa chọn role nào.';
 
   return new EmbedBuilder()
     .setTitle('🎭 Vaxloz Onboarding')
-    .setDescription(`Vui lòng tích chọn vai trò của bạn bên dưới:\n\nTrạng thái hiện tại: ${statusText}`)
+    .setDescription(`Vui lòng tích chọn vai trò của bạn bên dưới (có thể chọn 1, 2 hoặc cả 3 role):\n\nTrạng thái hiện tại: ${statusText}`)
     .setColor('Purple');
 }
 
 /**
- * Create dynamic StringSelectMenu Checkbox list with maxValues = 2 (Enables native Checkboxes UI)
- * - If 'hasBatTai' is active -> Hide 'artist' & 'music' options.
- * - If 'hasArtist' or 'hasMusic' is active -> Hide 'bat_tai' option.
- * - If conflict or initial -> Show all 3 options with Checkboxes.
+ * Create StringSelectMenu Checkbox list allowing selection of 1, 2, or all 3 roles freely
  */
-function createRoleSelectMenu(status = {}, isConflict = false) {
+function createRoleSelectMenu(status = {}) {
   const { hasArtist, hasMusic, hasBatTai } = status;
 
-  const options = [];
-
-  if (!isConflict && hasBatTai) {
-    options.push({
-      label: '🛋️ Sóc ăn nằm',
-      value: 'bat_tai',
-      description: 'Dành cho ai không làm nhạc & không biết vẽ',
-      default: true,
-    });
-  } else if (!isConflict && (hasArtist || hasMusic)) {
-    options.push({
+  const options = [
+    {
       label: '🎨 Biết vẽ',
       value: 'artist',
       description: 'Kỹ năng vẽ',
       default: Boolean(hasArtist),
-    });
-    options.push({
+    },
+    {
       label: '🎵 Làm nhạc',
       value: 'music',
       description: 'Kỹ năng làm nhạc',
       default: Boolean(hasMusic),
-    });
-  } else {
-    // Show all 3 options when no roles held or after conflict
-    options.push(
-      {
-        label: '🎨 Biết vẽ',
-        value: 'artist',
-        description: 'Kỹ năng vẽ',
-      },
-      {
-        label: '🎵 Làm nhạc',
-        value: 'music',
-        description: 'Kỹ năng làm nhạc',
-      },
-      {
-        label: '🛋️ Sóc ăn nằm',
-        value: 'bat_tai',
-        description: 'Dành cho ai không làm nhạc & không biết vẽ',
-      },
-    );
-  }
+    },
+    {
+      label: '🛋️ Sóc ăn nằm',
+      value: 'bat_tai',
+      description: 'Dành cho ai thích ăn nằm',
+      default: Boolean(hasBatTai),
+    },
+  ];
 
-  if (!isConflict && (hasArtist || hasMusic || hasBatTai)) {
+  if (hasArtist || hasMusic || hasBatTai) {
     options.push({
       label: '🔄 Bỏ chọn tất cả / Đặt lại',
       value: 'reset',
@@ -106,12 +72,12 @@ function createRoleSelectMenu(status = {}, isConflict = false) {
     .setCustomId('role_select')
     .setPlaceholder('Mở danh sách để tích chọn role...')
     .setMinValues(1)
-    .setMaxValues(2)
+    .setMaxValues(3)
     .addOptions(options);
 }
 
-function createOnboardingComponents(status = {}, isConflict = false) {
-  const row1 = new ActionRowBuilder().addComponents(createRoleSelectMenu(status, isConflict));
+function createOnboardingComponents(status = {}) {
+  const row1 = new ActionRowBuilder().addComponents(createRoleSelectMenu(status));
   return [row1];
 }
 

@@ -30,10 +30,9 @@ async function removeAllOnboardingRoles(member) {
 }
 
 /**
- * Handle role updates for Onboarding with strict mutual exclusivity rules:
- * - If user selected BOTH bat_tai AND (artist || music) -> CONFLICT! Strip all roles and return conflict: true.
- * - If user selected reset -> Strip all roles.
- * - Otherwise -> Assign valid roles & auto-assign ROLE_MINI_SOC.
+ * Handle role updates for Onboarding:
+ * - Members can choose 1, 2, or all 3 roles freely without restrictions.
+ * - ROLE_MINI_SOC is automatically assigned when at least one onboarding role is chosen.
  */
 async function updateOnboardingRoles(member, selectedValues) {
   const guild = member.guild;
@@ -47,50 +46,43 @@ async function updateOnboardingRoles(member, selectedValues) {
 
   if (values.includes('reset')) {
     await removeAllOnboardingRoles(member);
-    return { conflict: false };
+    return;
   }
 
   const wantArtist = values.includes('artist');
   const wantMusic = values.includes('music');
   const wantBatTai = values.includes('bat_tai');
 
-  // CONFLICT DETECTION: Checked both bat_tai AND a skill role!
-  if (wantBatTai && (wantArtist || wantMusic)) {
-    logger.warn(`Conflict detected for ${member.user.tag}: checked bat_tai along with skills. Cancelling selection.`);
-    await removeAllOnboardingRoles(member);
-    return { conflict: true };
+  // Update artist role
+  if (artistRole) {
+    if (wantArtist && !member.roles.cache.has(artistRole.id)) {
+      await member.roles.add(artistRole);
+      logger.info(`Added role '${artistRole.name}' to ${member.user.tag}`);
+    } else if (!wantArtist && member.roles.cache.has(artistRole.id)) {
+      await member.roles.remove(artistRole);
+      logger.info(`Removed role '${artistRole.name}' from ${member.user.tag}`);
+    }
   }
 
-  if (wantArtist || wantMusic) {
-    if (batTaiRole && member.roles.cache.has(batTaiRole.id)) {
-      await member.roles.remove(batTaiRole);
+  // Update music role
+  if (musicRole) {
+    if (wantMusic && !member.roles.cache.has(musicRole.id)) {
+      await member.roles.add(musicRole);
+      logger.info(`Added role '${musicRole.name}' to ${member.user.tag}`);
+    } else if (!wantMusic && member.roles.cache.has(musicRole.id)) {
+      await member.roles.remove(musicRole);
+      logger.info(`Removed role '${musicRole.name}' from ${member.user.tag}`);
     }
+  }
 
-    if (artistRole) {
-      if (wantArtist && !member.roles.cache.has(artistRole.id)) {
-        await member.roles.add(artistRole);
-      } else if (!wantArtist && member.roles.cache.has(artistRole.id)) {
-        await member.roles.remove(artistRole);
-      }
-    }
-
-    if (musicRole) {
-      if (wantMusic && !member.roles.cache.has(musicRole.id)) {
-        await member.roles.add(musicRole);
-      } else if (!wantMusic && member.roles.cache.has(musicRole.id)) {
-        await member.roles.remove(musicRole);
-      }
-    }
-  } else if (wantBatTai) {
-    if (batTaiRole && !member.roles.cache.has(batTaiRole.id)) {
+  // Update bat_tai role
+  if (batTaiRole) {
+    if (wantBatTai && !member.roles.cache.has(batTaiRole.id)) {
       await member.roles.add(batTaiRole);
       logger.info(`Added role '${batTaiRole.name}' to ${member.user.tag}`);
-    }
-    if (artistRole && member.roles.cache.has(artistRole.id)) {
-      await member.roles.remove(artistRole);
-    }
-    if (musicRole && member.roles.cache.has(musicRole.id)) {
-      await member.roles.remove(musicRole);
+    } else if (!wantBatTai && member.roles.cache.has(batTaiRole.id)) {
+      await member.roles.remove(batTaiRole);
+      logger.info(`Removed role '${batTaiRole.name}' from ${member.user.tag}`);
     }
   }
 
@@ -101,12 +93,13 @@ async function updateOnboardingRoles(member, selectedValues) {
     (musicRole && member.roles.cache.has(musicRole.id)) ||
     (batTaiRole && member.roles.cache.has(batTaiRole.id));
 
+  // Auto-assign ROLE_MINI_SOC if member has at least one onboarding role
   if (hasAnyRole && miniSocRoleObj && !member.roles.cache.has(miniSocRoleObj.id)) {
     await member.roles.add(miniSocRoleObj);
     logger.info(`Auto-assigned ROLE_MINI_SOC ('${miniSocRoleObj.name}') to ${member.user.tag}`);
+  } else if (!hasAnyRole && miniSocRoleObj && member.roles.cache.has(miniSocRoleObj.id)) {
+    await member.roles.remove(miniSocRoleObj);
   }
-
-  return { conflict: false };
 }
 
 /**
